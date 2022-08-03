@@ -31,5 +31,6 @@ pipeline {
             steps {
                 sh 'echo deploy to kubernetes'               
             }
+        }
     }
 }
