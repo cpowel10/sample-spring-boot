@@ -11,8 +11,7 @@ pipeline {
                 docker { image 'openjdk:11-jdk' }
             }
             steps {
-                sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-                sh 'chmod +x gradlew && ./gradlew sonarqube --stacktrace --scan'
+                sh 'SONAR_HOME=./.sonar chmod +x gradlew && ./gradlew build jacocoTestReport sonarqube --stacktrace'
             }
         }
         stage('docker build') {
