@@ -16,21 +16,21 @@ pipeline {
                 stash includes: 'build/**/*', name: 'testReport'
             }
         }
-        stage('sonarqube') {
-        agent {
-            docker { image 'sonarsource/sonar-scanner-cli:latest' } }
-            steps {
-                unstash 'testReport'
-                sh 'sonar-scanner -X'
-            }
-        }
+        // stage('sonarqube') {
+        // agent {
+        //     docker { image 'sonarsource/sonar-scanner-cli:latest' } }
+        //     steps {
+        //         unstash 'testReport'
+        //         sh 'sonar-scanner'
+        //     }
+        // }
         stage('docker build') {
             agent any
             steps {
                 sh 'echo docker build'
                 unstash 'testReport'
                 script{
-                    def image = docker.build("${env.ENV_DOCKER_USR}/${env.DOCKERIMAGE}:${env.BUILD_ID}")
+                    def image = docker.build('$ENV_DOCKER_USR/$DOCKERIMAGE:$BUILD_ID')
                     docker.withRegistry('', 'dockerhub'){
                         image.push()
                     }
