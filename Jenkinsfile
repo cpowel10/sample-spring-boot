@@ -2,7 +2,7 @@ pipeline {
     agent none
         environment {
         ENV_DOCKER = credentials('dockerhub')
-        DOCKERIMAGE = "dummy/dummy"
+        DOCKERIMAGE = "cpowell99/cogLab"
         EKS_CLUSTER_NAME = "demo-cluster"
     }
     stages {
@@ -13,12 +13,8 @@ pipeline {
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
             }
-        }
-        stage('sonarqube') {
-        agent {
-            docker { image '<some sonarcli image>' } }
             steps {
-                sh 'echo scanning!'
+                sh 'chmod +x gradlew && ./gradlew sonarqube'
             }
         }
         stage('docker build') {
