@@ -2,7 +2,7 @@ pipeline {
     agent none
         environment {
         ENV_DOCKER = credentials('dockerhub')
-        DOCKERIMAGE = "cpowell99/cogLab"
+        DOCKERIMAGE = "sample-spring-boot"
         EKS_CLUSTER_NAME = "demo-cluster"
         SONAR_TOKEN = credentials('sonarqube')
     }
@@ -27,6 +27,9 @@ pipeline {
         stage('docker build') {
             steps {
                 sh 'echo docker build'
+                script{
+                    def customImage = docker.build()
+                }
             }
         }
         stage('docker push') {
