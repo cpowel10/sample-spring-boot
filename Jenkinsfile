@@ -25,10 +25,15 @@ pipeline {
             }
         }
         stage('docker build') {
+            agent any
             steps {
                 sh 'echo docker build'
+                unstash 'testReport'
                 script{
-                    def customImage = docker.build()
+                    def image = docker.build("${env.ENV_DOCKER_USR}/${env.DOCKERIMAGE}:${env.BUILD_ID}")
+                    docker.withRegistry('', 'dockerhub'){
+                        image.push()
+                    }
                 }
             }
         }
