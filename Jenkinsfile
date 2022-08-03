@@ -12,8 +12,6 @@ pipeline {
             }
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-            }
-            steps {
                 sh 'chmod +x gradlew && ./gradlew sonarqube'
             }
         }
