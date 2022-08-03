@@ -4,6 +4,7 @@ pipeline {
         ENV_DOCKER = credentials('dockerhub')
         DOCKERIMAGE = "cpowell99/cogLab"
         EKS_CLUSTER_NAME = "demo-cluster"
+        SONAR_TOKEN = credentials('sonarqube')
     }
     stages {
         stage('build') {
@@ -11,7 +12,16 @@ pipeline {
                 docker { image 'openjdk:11-jdk' }
             }
             steps {
-                sh 'SONAR_HOME=./.sonar chmod +x gradlew && ./gradlew build jacocoTestReport sonarqube --stacktrace'
+                sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
+                stash includes: 'build/*', name: 'testReport'
+            }
+        }
+        stage('sonarqube') {
+        agent {
+            docker { image 'sonarsource/sonar-scanner-cli:latest' } }
+            steps {
+                unstash 'testReport'
+                sh 'sonar-scanner'
             }
         }
         stage('docker build') {
@@ -28,6 +38,5 @@ pipeline {
             steps {
                 sh 'echo deploy to kubernetes'               
             }
-        }
     }
 }
