@@ -12,7 +12,7 @@ pipeline {
             }
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-                sh 'chmod +x gradlew && ./gradlew sonarqube'
+                sh 'chmod +x gradlew && ./gradlew sonarqube--stacktrace'
             }
         }
         stage('docker build') {
