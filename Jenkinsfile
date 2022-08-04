@@ -32,7 +32,7 @@ pipeline {
                 script{
                     def image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE")
                     docker.withRegistry('', 'dockerhub'){
-                        image.push('$BUILD_ID')
+                        image.push("$BUILD_ID")
                         image.push('latest')
                     }
                 }
