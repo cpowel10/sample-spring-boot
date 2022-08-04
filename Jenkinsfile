@@ -13,14 +13,14 @@ pipeline {
             }
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-                stash includes: 'build/**/*', name: 'testReport'
+                stash includes: 'build/**/*', name: 'build'
             }
         }
         // stage('sonarqube') {
         // agent {
         //     docker { image 'sonarsource/sonar-scanner-cli:latest' } }
         //     steps {
-        //         unstash 'testReport'
+        //         unstash 'build'
         //         sh 'sonar-scanner'
         //     }
         // }
@@ -28,16 +28,13 @@ pipeline {
             agent any
             steps {
                 sh 'echo docker build'
-                unstash 'testReport'
+                unstash 'build'
                 script{
-                    sh 'echo inside script'
-                    def image = docker.build('$ENV_DOCKER_USR/$DOCKERIMAGE')
-                    sh 'echo after build'
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub'){
+                    def image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE")
+                    docker.withRegistry('', 'dockerhub'){
                         image.push('$BUILD_ID')
                         image.push('latest')
                     }
-                    sh 'echo after registry'
                 }
             }
         }
