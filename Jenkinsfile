@@ -30,11 +30,14 @@ pipeline {
                 sh 'echo docker build'
                 unstash 'testReport'
                 script{
+                    sh 'echo inside script'
                     def image = docker.build('$ENV_DOCKER_USR/$DOCKERIMAGE')
+                    sh 'echo after build'
                     docker.withRegistry('https://registry.hub.docker.com', 'dockerhub'){
                         image.push('$BUILD_ID')
                         image.push('latest')
                     }
+                    sh 'echo after registry'
                 }
             }
         }
