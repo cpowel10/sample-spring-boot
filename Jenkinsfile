@@ -5,6 +5,7 @@ pipeline {
         DOCKERIMAGE = "sample-spring-boot"
         EKS_CLUSTER_NAME = "demo-cluster"
         SONAR_TOKEN = credentials('sonarqube')
+        image = ''
     }
     stages {
         stage('build') {
@@ -30,17 +31,20 @@ pipeline {
                 sh 'echo docker build'
                 unstash 'build'
                 script{
-                    def image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE")
-                    docker.withRegistry('', 'dockerhub'){
-                        image.push("$BUILD_ID")
-                        image.push('latest')
+                    image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE")
                     }
                 }
             }
         }
         stage('docker push') {
+            agent any
             steps {
                 sh 'echo docker push!'
+                script{
+                    docker.withRegistry('', 'dockerhub'){
+                        image.push("$BUILD_ID")
+                        image.push('latest')
+                }
                 }
             }
         stage('Deploy App') {
