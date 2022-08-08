@@ -4,6 +4,7 @@ pipeline {
         ENV_DOCKER = credentials('dockerhub')
         DOCKERIMAGE = "cpowell99/practice_lab"
         EKS_CLUSTER_NAME = "demo-cluster"
+        ENV_SONARQUBE = credentials('sonarqube')
     }
     stages {
         stage('build') {
