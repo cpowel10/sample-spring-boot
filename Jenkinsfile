@@ -50,9 +50,20 @@ pipeline {
             }
         }
         stage('Deploy App') {
-            agent any
+            agent {
+                docker {
+                    image 'jshimko/kube-tools-aws:3.8.1'
+                    args '-u root --privileged'
+                }
+            }
             steps {
-                sh 'echo deploy to kubernetes'               
+                sh 'echo deploy to kubernetes' 
+
+                withAWS(credentials:'aws-credentials'){
+                    sh 'aws eks update-kubeconfig --name sre-primer'
+                    sh 'chmod +x deployment-status.sh && ./deployment-status.sh'
+                    sh "kubectl set image deployment sample-spring-boot -n chris-powell springboot-sample=$ENV_DOCKER_USR/$DOCKERIMAGE:$BUILD_ID"
+                }              
             }
         }
     }
