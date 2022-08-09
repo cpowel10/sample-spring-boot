@@ -14,6 +14,7 @@ pipeline {
             }
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
+                stash includes: 'build/**/*' name: 'build'
             }
         }
         stage('sonarqube') {
@@ -21,15 +22,19 @@ pipeline {
             docker { image 'sonarsource/sonar-scanner-cli' } }
             steps {
                 sh 'echo scanning!'
+                unstash 'build'
+                sh 'sonar-scanner -X'
             }
         }
         stage('docker build') {
             steps {
                 sh 'echo docker build'
+                
             }
         }
         stage('docker push') {
             steps {
+                unstash 'build'
                 sh 'echo docker push!'
                 }
             }
