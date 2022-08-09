@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        kubernetes {
-            inheritFrom 'spring'
-        }
-    }
+    agent any
     environment {
         ENV_DOCKER = credentials('dockerhub')
         DOCKERIMAGE = "sre-lab"
