@@ -40,8 +40,10 @@ pipeline {
             steps {
                 sh 'echo docker push!'
                 script{
-                    image.push("$BUILD_ID")
-                    image.push('latest')
+                    docker.withRegistry('','dockerhub'){
+                        image.push("$BUILD_ID")
+                        image.push('latest')
+                    }
                 }
             }
         }
