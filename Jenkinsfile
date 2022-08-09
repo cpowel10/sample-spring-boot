@@ -39,8 +39,12 @@ pipeline {
         stage('docker push') {
             steps {
                 sh 'echo docker push!'
+                script{
+                    image.push("$BUILD_ID")
+                    image.push('latest')
                 }
             }
+        }
         stage('Deploy App') {
             steps {
                 sh 'echo deploy to kubernetes'               
