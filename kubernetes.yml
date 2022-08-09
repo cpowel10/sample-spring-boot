@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sample-spring-boot
+  namespace: chris-powell
 spec:
   replicas: 1 # 1 PODs at any given point of time
   selector:
@@ -15,7 +16,7 @@ spec:
     spec:
       containers:
         - name: springboot-sample
-          image: <Your Docker Image>:<Your Image Tag>
+          image: cpowell99/sre-lab:latest
           ports:
             - containerPort: 8080
 ---
@@ -23,6 +24,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sample-spring-boot-service
+  namespace: chris-powell
   labels:
     name: sample-spring-boot
 spec:
@@ -31,5 +33,25 @@ spec:
       targetPort: 8080
       protocol: TCP
   selector:
-    app: sample-spring-boot-app
-  type: LoadBalancer # Type loadbalancer will use the underlying cloud provider to create an external url for accessing the app
+    app: sample-spring-boot
+  type: ClusterIP # Type loadbalancer will use the underlying cloud provider to create an external url for accessing the app
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-spring-boot
+  namespace: chris-powell
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+    - http:
+      paths:
+        - path: /spring/?(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: sample-spring-boot-service
+              port: 
+                number: 8080
