@@ -5,6 +5,7 @@ pipeline {
         DOCKERIMAGE = "sre-lab"
         EKS_CLUSTER_NAME = "demo-cluster"
         image = ''
+        ENV_SONARQUBE = "sonar-token"
     }
     stages {
         stage('build') {
