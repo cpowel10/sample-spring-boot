@@ -1,67 +1,72 @@
 pipeline {
-    agent any
-        environment {
+    agent {
+        kubernetes {
+            inheritFrom 'spring'
+        }
+    }
+    environment {
         ENV_DOCKER = credentials('dockerhub')
         DOCKERIMAGE = "sre-lab"
         EKS_CLUSTER_NAME = "demo-cluster"
+        SONAR_TOKEN = credentials('sonar-token')
         image = ''
-        ENV_SONARQUBE = "sonar-token"
     }
     stages {
         stage('build') {
-            agent {
-                docker { image 'openjdk:11-jdk' }
-            }
             steps {
-                sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-                stash includes: 'build/**/*', name: 'build'
+                container('jdk') {
+                    sh 'gradle build jacocoTestReport'
+                    stash includes: 'build/**/*', name: 'build'
+                }
             }
         }
-        // stage('sonarqube') {
-        // agent {
-        //     docker { image 'sonarsource/sonar-scanner-cli' } }
-        //     steps {
-        //         sh 'echo scanning!'
-        //         unstash 'build'
-        //         sh 'sonar-scanner -X'
-        //     }
-        // }
+        stage('sonarqube') {
+        agent {
+            docker { image 'sonarsource/sonar-scanner-cli' } }
+            steps {
+                container('sonar') {
+                    unstash 'build'
+                    sh 'sonar-scanner'
+                }
+            }
+        }
         stage('docker build') {
             steps {
-                unstash 'build'
-                sh 'echo docker build'
-                script{
-                    image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE")
+                container('docker') {
+                    echo 'Starting to build docker image'
+                    unstash 'build'
+
+                    script {
+                        image = docker.build("$ENV_DOCKER_USR/$DOCKERIMAGE:latest")
+                    }
                 }
-                
             }
         }
         stage('docker push') {
             steps {
-                sh 'echo docker push!'
-                script{
-                    docker.withRegistry('','dockerhub'){
-                        image.push("$BUILD_ID")
-                        image.push('latest')
+                container('docker') {
+                    echo 'Pushing image to registry'
+
+                    script {
+                        docker.withRegistry('', 'dockerhub') {
+                            image.push()
+                            image.push("$BUILD_ID")
+                        }
                     }
                 }
             }
         }
         stage('Deploy App') {
-            agent {
-                docker {
-                    image 'jshimko/kube-tools-aws:3.8.1'
-                    args '-u root --privileged'
-                }
-            }
             steps {
-                sh 'echo deploy to kubernetes' 
+                container('kubectl') {
+                    echo 'Deploying to kubernetes'
 
-                withAWS(credentials:'aws-credentials'){
-                    sh 'aws eks update-kubeconfig --name demo-cluster'
-                    sh 'chmod +x deployment-status.sh && ./deployment-status.sh'
-                    sh "kubectl set image deployment sample-spring-boot -n chris-powell springboot-sample=$ENV_DOCKER_USR/$DOCKERIMAGE:$BUILD_ID"
-                }              
+                    withAWS(credentials:'aws-credentials') {
+                        sh 'aws eks update-kubeconfig --name demo-cluster'
+                        sh 'chmod +x deployment-status.sh && ./deployment-status.sh'
+                        sh "kubectl set image deployment sample-spring-boot -n chris-powell springboot-sample=$ENV_DOCKER_USR/$DOCKERIMAGE:$BUILD_ID"
+                    }
+                }     
             }
         }
     }
