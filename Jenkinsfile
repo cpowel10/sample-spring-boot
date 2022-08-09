@@ -14,7 +14,7 @@ pipeline {
             }
             steps {
                 sh 'chmod +x gradlew && ./gradlew build jacocoTestReport'
-                stash includes: 'build/**/*' name: 'build'
+                stash includes: 'build/**/*', name: 'build'
             }
         }
         stage('sonarqube') {
